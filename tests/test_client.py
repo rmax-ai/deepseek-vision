@@ -69,9 +69,21 @@ async def test_temperature_omitted_when_none(mock_api, client) -> None:
 
 
 async def test_response_format_absent_without_schema(mock_api, client) -> None:
-    await client.analyze(_frames(), prompt="P")
+    await client.analyze(_frames(1), prompt="hello")
     body = json.loads(mock_api.calls[-1].request.content)
     assert "response_format" not in body
+
+
+async def test_thinking_disabled_passthrough(mock_api, client) -> None:
+    await client.analyze(_frames(1), prompt="hello", thinking="disabled")
+    body = json.loads(mock_api.calls[-1].request.content)
+    assert body["thinking"] == {"type": "disabled"}
+
+
+async def test_thinking_absent_when_none(mock_api, client) -> None:
+    await client.analyze(_frames(1), prompt="hello")
+    body = json.loads(mock_api.calls[-1].request.content)
+    assert "thinking" not in body
 
 
 async def test_system_message_first(mock_api, client) -> None:
@@ -269,9 +281,10 @@ async def test_markdown_fenced_json_stripped(mock_api_json_sequence) -> None:
         json={"choices": [{"message": {"content": content}}], "usage": {}},
     )
     mock_api_json_sequence([resp])
-    client = DeepSeekMultimodalClient(api_key="sk-test-placeholder")
+    client = DeepSeekMultimodalClient(api_key="test-key-placeholder")
     result = await client.analyze(_frames(), prompt="P", output_schema=SummarySchema)
     assert result["data"].summary == "fenced"
+    assert "```" not in result["text"]
 
 
 async def test_aenter_aexit(mock_api) -> None:

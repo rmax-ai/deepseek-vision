@@ -125,6 +125,7 @@ class DeepSeekMultimodalClient:
         max_output_tokens: int = 8192,
         detail: str = "original",
         user_id: str | None = None,
+        thinking: str | None = None,
     ) -> dict:
         """Run one (possibly multi-image) analysis request.
 
@@ -134,7 +135,7 @@ class DeepSeekMultimodalClient:
         num_frames = len(frames)
         body = self._build_body(
             prompt, system, frames, output_schema, temperature,
-            max_output_tokens, detail, user_id,
+            max_output_tokens, detail, user_id, thinking,
         )
         try:
             data, content, usage = await self._request_loop(
@@ -149,7 +150,7 @@ class DeepSeekMultimodalClient:
             )
             body = self._build_body(
                 new_prompt, system, frames, output_schema, temperature,
-                max_output_tokens, detail, user_id,
+                max_output_tokens, detail, user_id, thinking,
             )
             data, content, usage = await self._request_loop(
                 body, output_schema, num_frames, validation_failure_mode="raise"
@@ -313,11 +314,11 @@ class DeepSeekMultimodalClient:
                 if validation_failure_mode == "raise":
                     raise ResponseValidationError(
                         "response failed schema validation",
-                        [content[:2000]],
+                        [cleaned[:2000]],
                     )
-                raise _ValidationFailed(content, exc.errors())
-            return parsed, content, usage, latency
-        return obj, content, usage, latency
+                raise _ValidationFailed(cleaned, exc.errors())
+            return parsed, cleaned, usage, latency
+        return obj, cleaned, usage, latency
 
     # ------------------------------------------------------------------ #
     # Helpers
@@ -332,6 +333,7 @@ class DeepSeekMultimodalClient:
         max_output_tokens: int,
         detail: str,
         user_id: str | None,
+        thinking: str | None,
     ) -> dict:
         messages: list[dict] = []
         if system:
@@ -358,6 +360,8 @@ class DeepSeekMultimodalClient:
             body["response_format"] = {"type": "json_object"}
         if user_id:
             body["user_id"] = user_id
+        if thinking is not None:
+            body["thinking"] = {"type": thinking}
         return body
 
     def _record(

@@ -26,7 +26,7 @@ class MockClient:
 
     async def analyze(self, frames, *, prompt, system=None, output_schema=None,
                       temperature=None, max_output_tokens=8192, detail="original",
-                      user_id=None):
+                      user_id=None, thinking=None):
         self.calls.append(prompt)
         await asyncio.sleep(random.uniform(0.001, 0.02))
         if "Synthesize a global analysis" in prompt:

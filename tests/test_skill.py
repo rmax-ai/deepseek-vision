@@ -36,6 +36,22 @@ async def test_describe_image(mock_api, tmp_path, sample_png_bytes) -> None:
     assert result.evidence[0].source == str(path)
 
 
+async def test_thinking_option_flows_to_request(
+    mock_api, tmp_path, sample_png_bytes
+) -> None:
+    import json
+
+    path = tmp_path / "img.png"
+    path.write_bytes(sample_png_bytes)
+    await analyze_media(
+        str(path),
+        task="describe",
+        options=_opts(thinking="enabled"),
+    )
+    body = json.loads(mock_api.calls[-1].request.content)
+    assert body["thinking"] == {"type": "enabled"}
+
+
 async def test_compare_collection(mock_api, tmp_path, sample_png_bytes) -> None:
     p1 = tmp_path / "a.png"
     p2 = tmp_path / "b.png"

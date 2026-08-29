@@ -68,6 +68,7 @@ class HierarchicalSynthesizer:
         temperature: float | None,
         max_output_tokens: int,
         detail: str,
+        thinking: str | None = None,
         cache: Cache | None = None,
         batch_prompt_builder: Callable[[int, list[MediaFrame]], str],
     ) -> list[dict]:
@@ -88,6 +89,7 @@ class HierarchicalSynthesizer:
                         "schema_digest": schema_digest(output_schema),
                         "detail": detail,
                         "temperature": temperature,
+                        "thinking": thinking,
                         "max_output_tokens": max_output_tokens,
                     }
                 )
@@ -125,6 +127,7 @@ class HierarchicalSynthesizer:
                 temperature=temperature,
                 max_output_tokens=max_output_tokens,
                 detail=detail,
+                thinking=thinking,
             )
             if cache is not None and cache_key is not None:
                 cache.put(
@@ -164,6 +167,7 @@ class HierarchicalSynthesizer:
         temperature: float | None,
         max_output_tokens: int,
         detail: str,
+        thinking: str | None = None,
         max_repr_frames: int = 8,
         cache: Cache | None = None,
     ) -> dict:
@@ -213,6 +217,7 @@ class HierarchicalSynthesizer:
                     "schema_digest": schema_digest(output_schema),
                     "detail": detail,
                     "temperature": temperature,
+                    "thinking": thinking,
                     "max_output_tokens": max_output_tokens,
                 }
             )
@@ -232,6 +237,7 @@ class HierarchicalSynthesizer:
             temperature=temperature,
             max_output_tokens=max_output_tokens,
             detail=detail,
+            thinking=thinking,
         )
         if cache is not None and cache_key is not None:
             cache.put(

@@ -301,6 +301,9 @@ async def analyze_media(
     temperature = (
         opts.temperature if opts.temperature is not None else preset.temperature
     )
+    thinking = (
+        opts.thinking if opts.thinking is not None else preset.thinking
+    )
     detail = opts.detail
     max_output_tokens = _effective_max_output_tokens(options, opts, preset)
 
@@ -316,6 +319,7 @@ async def analyze_media(
             max_output_tokens=max_output_tokens,
             detail=detail,
             user_id=opts.user_id,
+            thinking=thinking,
             task=task,
             stats=stats,
             tracker=tracker,
@@ -348,6 +352,7 @@ async def analyze_media(
                 "schema_digest": f"{schema_digest(batch_schema)}|{schema_digest(final_schema)}",
                 "detail": detail,
                 "temperature": temperature,
+                "thinking": thinking,
                 "max_output_tokens": max_output_tokens,
             }
         )
@@ -394,6 +399,7 @@ async def analyze_media(
             system=preset.system_prompt,
             output_schema=batch_schema,
             temperature=temperature,
+            thinking=thinking,
             max_output_tokens=max_output_tokens,
             detail=detail,
             cache=cache,
@@ -424,6 +430,7 @@ async def analyze_media(
             system=preset.system_prompt,
             output_schema=final_schema,
             temperature=temperature,
+            thinking=thinking,
             max_output_tokens=max_output_tokens,
             detail=detail,
             cache=cache,
@@ -509,6 +516,8 @@ def _result_to_cache(result: AnalysisResult) -> dict:
 def _result_from_cache(
     cached: dict, *, task: str, stats: MediaStats
 ) -> AnalysisResult:
+    usage = UsageSummary.model_validate(cached.get("usage", {}))
+    usage = usage.model_copy(update={"from_cache": usage.from_cache + 1})
     return AnalysisResult(
         task=task,
         data=cached.get("data"),
@@ -520,7 +529,7 @@ def _result_from_cache(
             Evidence.model_validate(ev) for ev in cached.get("evidence", [])
         ],
         synthesis=cached.get("synthesis"),
-        usage=UsageSummary.model_validate(cached.get("usage", {})),
+        usage=usage,
         media=MediaStats.model_validate(cached.get("media", {}))
         if cached.get("media")
         else stats,
@@ -537,6 +546,7 @@ async def _run_single_batch(
     instructions: str | None,
     schema: type[BaseModel] | None,
     temperature: float | None,
+    thinking: str | None,
     max_output_tokens: int,
     detail: str,
     user_id: str | None,
@@ -572,12 +582,14 @@ async def _run_single_batch(
                 "schema_digest": schema_digest(schema),
                 "detail": detail,
                 "temperature": temperature,
+                "thinking": thinking,
                 "max_output_tokens": max_output_tokens,
             }
         )
         cached = cache.get(cache_key)
         if cached is not None:
             usage = UsageSummary.model_validate(cached.get("usage", {}))
+            usage = usage.model_copy(update={"from_cache": usage.from_cache + 1})
             data = cached.get("data")
             text = cached.get("text", _serialize(data))
             return _build_single_result(
@@ -609,6 +621,7 @@ async def _run_single_batch(
             system=preset_system_prompt,
             output_schema=schema,
             temperature=temperature,
+            thinking=thinking,
             max_output_tokens=max_output_tokens,
             detail=detail,
             user_id=user_id,

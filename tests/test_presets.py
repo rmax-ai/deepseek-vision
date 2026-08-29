@@ -50,6 +50,14 @@ def test_all_presets_have_prompts() -> None:
         assert preset.description.strip(), name
 
 
+def test_presets_default_thinking_disabled() -> None:
+    # Thinking mode is on by default at the provider; presets opt out so that
+    # declared temperatures are honored and reasoning tokens are not billed
+    # for structured/deterministic tasks.
+    for name, preset in PRESETS.items():
+        assert preset.thinking == "disabled", name
+
+
 def test_hierarchical_presets_complete() -> None:
     for name in HIERARCHICAL:
         preset = PRESETS[name]

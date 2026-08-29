@@ -114,3 +114,10 @@ def test_default_cache_dir_home(monkeypatch, tmp_path) -> None:
     monkeypatch.setattr("pathlib.Path.home", lambda: tmp_path)
     cache = Cache()
     assert cache.dir == str(tmp_path / ".cache" / "deepseek-vision" / "cache")
+
+
+def test_key_differs_on_thinking() -> None:
+    base = _base_inputs()
+    assert key({**base, "thinking": "disabled"}) != key(
+        {**base, "thinking": "enabled"}
+    )

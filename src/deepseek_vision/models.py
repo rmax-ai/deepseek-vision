@@ -133,6 +133,7 @@ class AnalyzeOptions(BaseModel):
     temperature: float | None = None
     max_output_tokens: int = 8192
     detail: str = "original"
+    thinking: Literal["enabled", "disabled"] | None = None
     use_cache: bool = True
     cache_dir: str | None = None
     image_token_estimate: int = 384

@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from typing import Literal
+
 from pydantic import BaseModel, ConfigDict
 
 
@@ -16,6 +18,7 @@ class Preset(BaseModel):
     task_instructions: str
     output_schema: type[BaseModel] | None = None
     temperature: float | None = None
+    thinking: Literal["enabled", "disabled"] | None = "disabled"
     max_output_tokens: int = 8192
     hierarchical: bool = False
     batch_instructions: str | None = None

@@ -23,6 +23,7 @@ _CACHE_KEYS = (
     "detail",
     "temperature",
     "max_output_tokens",
+    "thinking",
 )
 
 
