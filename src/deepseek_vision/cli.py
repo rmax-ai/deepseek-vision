@@ -208,6 +208,12 @@ def _add_global_flags(parser: argparse.ArgumentParser) -> None:
     parser.add_argument(
         "--max-tokens", type=int, default=None, help="max output tokens"
     )
+    parser.add_argument(
+        "--thinking",
+        choices=["enabled", "disabled"],
+        default=None,
+        help="override thinking mode (presets default to disabled)",
+    )
 
 
 async def _verbose_handler(event: Event) -> None:
@@ -232,6 +238,8 @@ def _build_options(args: argparse.Namespace) -> AnalyzeOptions:
         kwargs["temperature"] = args.temperature
     if args.max_tokens is not None:
         kwargs["max_output_tokens"] = args.max_tokens
+    if args.thinking is not None:
+        kwargs["thinking"] = args.thinking
     if args.no_cache:
         kwargs["use_cache"] = False
     if args.verbose:

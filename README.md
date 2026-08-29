@@ -110,7 +110,10 @@ media ──► deterministic preprocessing ──► batching ──► DeepSee
 
 Global flags (every subcommand): `--json`, `--usage`, `--verbose`,
 `--no-cache`, `--model`, `--timeout FLOAT`, `--concurrency INT`,
-`--max-images-per-request INT`, `--temperature FLOAT`, `--max-tokens INT`.
+`--max-images-per-request INT`, `--temperature FLOAT`, `--max-tokens INT`,
+`--thinking enabled|disabled` (override the preset default; presets default
+to `disabled` because the provider has thinking on by default, which bills
+reasoning tokens and ignores temperature).
 
 Exit codes: `0` success, `1` any `DeepSeekVisionError` (message printed as
 `error: ...` to stderr), `2` argparse usage errors.
@@ -186,6 +189,7 @@ wrapper.
 | Output pricing (per 1M tokens) | $0.66 off-peak / $1.32 peak |
 | Peak hours (UTC) | Mon-Fri 01:00-04:00 and 06:00-10:00 |
 | Native video/document input | No: videos and PDFs are deterministically preprocessed into image frames |
+| Thinking mode | ON by default at the provider (`reasoning_tokens` billed in `completion_tokens`); this library disables it by default via presets (`thinking="disabled"`), override with `options.thinking="enabled"` |
 
 Pricing constants live in `usage.py` and are configurable.
 
