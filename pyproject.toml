@@ -11,6 +11,9 @@ dependencies = [
     "pillow>=10",
 ]
 
+[project.scripts]
+deepseek-vision = "deepseek_vision.cli:main"
+
 [dependency-groups]
 dev = [
     "pytest>=8",

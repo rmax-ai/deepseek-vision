@@ -9,13 +9,14 @@ from typing import Any
 
 from pydantic import BaseModel
 
-from .cache import Cache, schema_digest
+from .cache import Cache, key, schema_digest
 from .events import (
     BATCH_CREATED,
     REQUEST_COMPLETED,
     EventEmitter,
 )
 from .models import AnalyzeOptions, Evidence, MediaFrame
+from .prompts import schema_to_prompt
 from .usage import UsageTracker
 
 
@@ -78,7 +79,7 @@ class HierarchicalSynthesizer:
             prompt = batch_prompt_builder(index, frames)
             cache_key: str | None = None
             if cache is not None:
-                cache_key = cache.key(
+                cache_key = key(
                     {
                         "media_hashes": cache.match_media(frames),
                         "model": self.options.model,
@@ -177,7 +178,8 @@ class HierarchicalSynthesizer:
         prompt = (
             f"You analyzed {len(segments)} segments of media. Segment results "
             "follow. Synthesize a global analysis. Preserve provenance: every "
-            "claim must cite its source and timestamp/page.\n\n"
+            "claim must cite its source and timestamp/page. Respond in valid "
+            "json.\n\n"
         )
         parts: list[str] = []
         for segment in segments:
@@ -192,9 +194,17 @@ class HierarchicalSynthesizer:
             )
         prompt += "\n\n".join(parts)
 
+        if output_schema is not None:
+            schema_str, example_str = schema_to_prompt(output_schema)
+            prompt += (
+                "\n\nRespond with a single JSON object that matches the "
+                "following schema exactly. No markdown fences, no commentary.\n"
+                f"JSON Schema:\n{schema_str}\n\nExample JSON:\n{example_str}"
+            )
+
         cache_key: str | None = None
         if cache is not None:
-            cache_key = cache.key(
+            cache_key = key(
                 {
                     "media_hashes": cache.match_media(repr_frames),
                     "model": self.options.model,

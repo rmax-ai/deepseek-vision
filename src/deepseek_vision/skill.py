@@ -10,7 +10,7 @@ from typing import Any
 
 from pydantic import BaseModel
 
-from .cache import Cache, schema_digest
+from .cache import Cache, key, schema_digest
 from .client import DeepSeekMultimodalClient
 from .errors import ConfigurationError
 from .events import (
@@ -48,6 +48,7 @@ from .prompts import (
     build_analysis_prompt,
     estimate_prompt_tokens,
     format_frames,
+    schema_to_prompt,
 )
 from .synthesis import HierarchicalSynthesizer, _jsonable
 from .usage import UsageTracker
@@ -338,7 +339,7 @@ async def analyze_media(
             sort_keys=True,
             default=str,
         )
-        full_pipeline_key = cache.key(
+        full_pipeline_key = key(
             {
                 "media_hashes": cache.match_media(frames),
                 "model": model,
@@ -552,10 +553,17 @@ async def _run_single_batch(
     full_prompt = build_analysis_prompt(
         preset_task_instructions, instructions, format_frames(frames)
     )
+    if schema is not None:
+        schema_str, example_str = schema_to_prompt(schema)
+        full_prompt += (
+            "\n\nRespond with a single JSON object that matches the following "
+            f"schema exactly. No markdown fences, no commentary.\n"
+            f"JSON Schema:\n{schema_str}\n\nExample JSON:\n{example_str}"
+        )
 
     cache_key: str | None = None
     if cache is not None:
-        cache_key = cache.key(
+        cache_key = key(
             {
                 "media_hashes": cache.match_media(frames),
                 "model": model,

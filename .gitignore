@@ -8,3 +8,9 @@ dist/
 build/
 .hermes/
 .DS_Store
+
+# Generated artifacts (eval fixtures/reports, example fixtures)
+.eval-media/
+eval-report/
+examples/fixtures/
+.serena/

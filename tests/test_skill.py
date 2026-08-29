@@ -247,3 +247,19 @@ def test_analyze_media_sync_wrapper(
     )
     assert isinstance(result, AnalysisResult)
     assert result.usage.requests == 1
+
+
+async def test_cache_enabled_single_batch(mock_api, tmp_path, sample_png_bytes) -> None:
+    """Cached runs must not raise (regression: cache.key was not a method)."""
+    path = tmp_path / "img.png"
+    path.write_bytes(sample_png_bytes)
+    cache_dir = tmp_path / "cache"
+    opts = {
+        "use_cache": True,
+        "cache_dir": str(cache_dir),
+        "api_key": "sk-test-placeholder",
+    }
+    first = await analyze_media(str(path), task="describe", options=opts)
+    assert first.usage.requests == 1
+    second = await analyze_media(str(path), task="describe", options=opts)
+    assert second.meta.get("from_cache") is True
